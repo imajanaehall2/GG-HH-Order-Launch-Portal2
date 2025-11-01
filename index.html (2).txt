@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grace & Gains | Hush & Hope Ordering</title>
+<!-- Load Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Use Inter font -->
+<style>
+@import url('https://fonts.fonts.gstatic.com/s/inter/v13/U6Wf-i-APJqR1z-E_xU.woff2') format('woff2');
+body { font-family: 'Inter', sans-serif; }
+</style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased">
+
+<!-- Firebase SDK Imports (REQUIRED) -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+// Global Firebase Variables (MUST BE USED)
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+let db, auth;
+
+// Function to initialize Firebase and authenticate
+async function initializeFirebase() {
+try {
+if (Object.keys(firebaseConfig).length === 0) {
+console.error("Firebase config is missing.");
+return;
+}
+setLogLevel('debug');
+const app = initializeApp(firebaseConfig);
+db = getFirestore(app);
+auth = getAuth(app);
+
+// Authenticate the user
+if (initialAuthToken) {
+await signInWithCustomToken(auth, initialAuthToken);
+} else {
+await signInAnonymously(auth);
+}
+console.log("Firebase initialized and user authenticated.");
+} catch (error) {
+console.error("Error initializing Firebase:", error);
+}
+}
+
+// --- Core Order Submission Logic ---
+async function submitOrder(e) {
+e.preventDefault();
+
+if (!db || !auth || !auth.currentUser) {
+document.getElementById('message-box').innerHTML = '<p class="text-red-600">Error: Database connection not ready. Please try again.</p>';
+return;
+}
+
+const form = e.target;
+const product = form.dataset.product;
+const userId = auth.currentUser.uid;
+const orderId = new Date().getTime().toString(); // Simple unique ID
+const timestamp = new Date().toISOString();
+
+// 1. Gather Customer Information
+const customerData = {
+name: form.elements.name.value,
+email: form.elements.email.value,
+phone: form.elements.phone ? form.elements.phone.value : 'N/A',
+};
+
+// 2. Gather Order Details
+let orderDetails = {
+orderId: orderId,
+product: product,
+timestamp: timestamp,
+status: 'Pending',
+customer: customerData,
+userId: userId,
+discount: 'None', // Default discount
+};
+
+let finalPrice = 0.00;
+let successMessage = '';
+
+
+// 3. Handle specific product data (Physical vs. Digital)
+if (product === 'Hush and Hope Box') {
+finalPrice = 75.00;
+orderDetails.shippingAddress = form.elements.address.value;
+successMessage = `Your Hush and Hope box order has been placed! Total: $${finalPrice.toFixed(2)}. We will contact you regarding payment and shipping.`;
+
+} else if (product === 'Graceful Gains Blueprint') {
+const originalTotal = 497.00;
+finalPrice = originalTotal;
+const couponCode = form.elements.coupon.value.toUpperCase().trim();
+
+if (couponCode === 'FIRST50') {
+finalPrice = originalTotal * 0.50; // $248.50
+orderDetails.discount = 'FIRST50 (50% OFF)';
+successMessage = `Enrollment Confirmed with Discount! Total: $${finalPrice.toFixed(2)}. Your digital access link is on its way to your email.`;
+} else {
+successMessage = `Enrollment Confirmed! Total: $${finalPrice.toFixed(2)}. Your digital access link is on its way to your email.`;
+}
+orderDetails.delivery = 'Instant Digital Access via Email';
+}
+
+orderDetails.total = finalPrice;
+
+
+// Firestore Path for Self-Fulfillment Orders (Private to the user)
+const collectionPath = `/artifacts/${appId}/users/${userId}/orders`;
+
+try {
+// Add the new order document to the 'orders' collection
+await addDoc(collection(db, collectionPath), orderDetails);
+
+// Show success message
+document.getElementById('message-box').innerHTML = `
+<div class="p-4 bg-green-100 text-green-800 rounded-lg shadow-md mt-4">
+<p class="font-bold">Order Confirmed! (ID: ${orderId})</p>
+<p>${successMessage}</p>
+</div>
+`;
+form.reset();
+} catch (e) {
+console.error("Error adding document: ", e);
+document.getElementById('message-box').innerHTML = '<p class="text-red-600">Sorry, there was an error processing your order. Please check the console.</p>';
+}
+}
+
+// Attach the submit function globally for the forms
+window.submitOrder = submitOrder;
+
+// Initialize on load
+window.onload = initializeFirebase;
+</script>
+
+<!-- Header / Navigation Bar -->
+<header class="bg-white shadow-md sticky top-0 z-10">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+<h1 class="text-3xl font-extrabold tracking-tight text-gray-900">
+<span class="text-green-600">Grace &</span> Gains
+</h1>
+<nav class="hidden md:flex space-x-8">
+<a href="#gains" class="text-lg font-medium text-gray-600 hover:text-green-600 transition duration-150">Services</a>
+<a href="#hope" class="text-lg font-medium text-gray-600 hover:text-green-600 transition duration-150">Shop Boxes</a>
+<a href="#" class="text-lg font-medium text-gray-600 hover:text-green-600 transition duration-150">My Story</a>
+</nav>
+<button class="md:hidden p-2 rounded-md text-gray-700 hover:bg-gray-100 transition duration-150">
+<!-- Hamburger Icon -->
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+</button>
+</div>
+</header>
+
+<main class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+
+<!-- Announcement/Hero Section -->
+<div class="text-center bg-gray-100 p-8 sm:p-12 rounded-2xl shadow-xl mb-12">
+<h2 class="text-4xl sm:text-5xl font-extrabold text-gray-900 leading-tight">
+Sustainable Success. <span class="text-green-600">Simplified.</span>
+</h2>
+<p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
+Stop choosing between ambition and well-being. Start building your life with both **Grace and Gains.**
+</p>
+</div>
+
+<!-- Order Success/Error Message Box -->
+<div id="message-box" class="mb-8"></div>
+
+<!-- --- GRACE & GAINS: DIGITAL SERVICE SECTION --- -->
+<section id="gains" class="mb-16">
+<h3 class="text-3xl font-bold text-gray-900 mb-8 pb-3 border-b border-green-200">
+Grace & Gains: Your Path to Clarity
+</h3>
+
+<div class="bg-white p-6 sm:p-10 rounded-xl shadow-lg border border-green-100 md:flex md:items-start md:space-x-8">
+<!-- Product Information -->
+<div class="md:w-1/2">
+<h4 class="text-2xl font-bold text-green-700">The Graceful Gains Blueprint</h4>
+<p class="mt-2 text-gray-600">
+This is the signature 4-week digital course that shows you how to scale your success without scaling your burnout. Get instant access to video modules, workbooks, and templates.
+</p>
+<ul class="mt-4 space-y-2 text-gray-700 text-sm list-disc list-inside">
+<li>✅ 4 Core Modules for Effortless Momentum</li>
+<li>✅ Lifetime Access & Updates</li>
+<li>✅ The **Graceful Gains Blueprint** Workbook (PDF)</li>
+</ul>
+<p class="mt-6 text-xl font-extrabold text-gray-500 line-through">Original Price: $497.00</p>
+<p class="text-3xl font-extrabold text-gray-900">Current Price: $497.00</p>
+</div>
+
+<!-- Digital Order Form -->
+<div class="md:w-1/2 mt-8 md:mt-0 p-6 bg-green-50 rounded-lg shadow-inner">
+<p class="font-semibold text-lg mb-4 text-green-800">Enroll Today (Instant Access)</p>
+<form data-product="Graceful Gains Blueprint" onsubmit="submitOrder(event)">
+<div class="space-y-4">
+<div>
+<label for="name-gains" class="block text-sm font-medium text-gray-700">Full Name</label>
+<input type="text" id="name-gains" name="name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 focus:ring-green-500 focus:border-green-500">
+</div>
+<div>
+<label for="email-gains" class="block text-sm font-medium text-gray-700">Email Address (for Access)</label>
+<input type="email" id="email-gains" name="email" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 focus:ring-green-500 focus:border-green-500">
+</div>
+<div>
+<label for="coupon-gains" class="block text-sm font-medium text-gray-700">Coupon Code (e.g., FIRST50)</label>
+<input type="text" id="coupon-gains" name="coupon" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 focus:ring-green-500 focus:border-green-500">
+</div>
+<button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-lg text-lg font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150">
+Enroll Now - Get Instant Access
+</button>
+</div>
+</form>
+</div>
+</div>
+</section>
+
+<!-- --- HUSH & HOPE: PHYSICAL BOX SECTION --- -->
+<section id="hope" class="mb-16">
+<h3 class="text-3xl font-bold text-gray-900 mb-8 pb-3 border-b border-gray-300">
+Hush & Hope: The Reset Collection
+</h3>
+
+<div class="bg-white p-6 sm:p-10 rounded-xl shadow-lg border border-gray-200 md:flex md:items-start md:space-x-8">
+<!-- Product Information -->
+<div class="md:w-1/2">
+<h4 class="text-2xl font-bold text-gray-700">The Hope Reset Set (Handmade Box)</h4>
+<p class="mt-2 text-gray-600">
+This curated box is hand-assembled by the founder and includes the high-quality physical products you need for intentional restoration. This turns self-care into a **sacred moment of hope.**
+</p>
+<ul class="mt-4 space-y-2 text-gray-700 text-sm list-disc list-inside">
+<li>✅ Silk Sleep Mask & Natural Lashes</li>
+<li>✅ 5x Soothing Clay Face Masks</li>
+<li>✅ Exclusive **3-Minute Guided Intention** Note Card</li>
+<li>✅ Hand-packed and shipped directly from the founder</li>
+</ul>
+<p class="mt-6 text-3xl font-extrabold text-gray-900">$75.00</p>
+</div>
+
+<!-- Physical Order Form -->
+<div class="md:w-1/2 mt-8 md:mt-0 p-6 bg-gray-100 rounded-lg shadow-inner">
+<p class="font-semibold text-lg mb-4 text-gray-800">Order Your Box (Self-Fulfilled)</p>
+<form data-product="Hush and Hope Box" onsubmit="submitOrder(event)">
+<div class="space-y-4">
+<div>
+<label for="name-hope" class="block text-sm font-medium text-gray-700">Full Name</label>
+<input type="text" id="name-hope" name="name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 focus:ring-green-500 focus:border-green-500">
+</div>
+<div>
+<label for="email-hope" class="block text-sm font-medium text-gray-700">Email Address</label>
+<input type="email" id="email-hope" name="email" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 focus:ring-green-500 focus:border-green-500">
+</div>
+<div>
+<label for="phone-hope" class="block text-sm font-medium text-gray-700">Phone (Optional)</label>
+<input type="tel" id="phone-hope" name="phone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 focus:ring-green-500 focus:border-green-500">
+</div>
+<div>
+<label for="address-hope" class="block text-sm font-medium text-gray-700">Shipping Address</label>
+<textarea id="address-hope" name="address" rows="3" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 focus:ring-green-500 focus:border-green-500"></textarea>
+</div>
+<!-- Note: Coupon not added here since the physical product doesn't have an automated discount associated yet. -->
+<button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-lg text-lg font-medium text-white bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 transition duration-150">
+Place Order - Ship in 3-5 Days
+</button>
+</div>
+</form>
+</div>
+</div>
+</section>
+
+</main>
+
+<!-- Footer -->
+<footer class="bg-gray-900 text-white py-8 mt-12">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm">
+&copy; 2025 Grace & Gains | Hush & Hope. All rights reserved.
+</div>
+</footer>
+
+</body>
+</html>
