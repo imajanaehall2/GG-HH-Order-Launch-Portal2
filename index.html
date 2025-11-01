@@ -1,288 +1,387 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grace & Gains | Hush & Hope Ordering</title>
-<!-- Load Tailwind CSS -->
-<script src="https://cdn.tailwindcss.com"></script>
-<!-- Use Inter font -->
-<style>
-@import url('https://fonts.fonts.gstatic.com/s/inter/v13/U6Wf-i-APJqR1z-E_xU.woff2') format('woff2');
-body { font-family: 'Inter', sans-serif; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grace & Gains | Your Success Portal</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .gg-green { background-color: #10B981; }
+        .gg-green-text { color: #10B981; }
+        .scroll-mt-32 { scroll-margin-top: 8rem; } /* Used for smooth scrolling to forms */
+    </style>
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased">
 
-<!-- Firebase SDK Imports (REQUIRED) -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <!-- Sticky Navigation (for easy jumping between sections) -->
+    <nav class="fixed top-0 left-0 right-0 bg-white shadow-lg z-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <span class="text-xl font-extrabold gg-green-text">G&G | H&H</span>
+                <div class="flex space-x-4 text-sm font-medium">
+                    <a href="#top" class="text-gray-900 hover:gg-green-text">Home</a>
+                    <a href="#gains-order" class="text-gray-900 hover:gg-green-text">Gains</a>
+                    <a href="#hope-order" class="text-gray-900 hover:gg-green-text">Hope</a>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-// Global Firebase Variables (MUST BE USED)
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+    <!-- Main Landing Section -->
+    <div id="top" class="w-full max-w-lg mx-auto p-4 sm:p-8 space-y-8 mt-20">
 
-let db, auth;
+        <!-- Profile/Brand Header -->
+        <div class="text-center pt-4">
+            <!-- Authentication Status -->
+            <div id="auth-status" class="text-center text-sm p-3 rounded-xl border border-dashed border-gray-300 mb-4">
+                <p id="user-status" class="text-gray-600">Loading user status...</p>
+                <p id="user-id-display" class="text-xs text-gray-400 mt-1 break-all"></p>
+            </div>
+            
+            <button id="github-login-btn" onclick="signInWithGitHub()" 
+                class="hidden w-full text-center py-3 px-6 rounded-xl shadow-md bg-gray-900 text-white font-bold hover:bg-gray-700 transition duration-300 mb-6">
+                <svg class="inline w-5 h-5 mr-2" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                </svg>
+                Sign In with GitHub
+            </button>
 
-// Function to initialize Firebase and authenticate
-async function initializeFirebase() {
-try {
-if (Object.keys(firebaseConfig).length === 0) {
-console.error("Firebase config is missing.");
-return;
-}
-setLogLevel('debug');
-const app = initializeApp(firebaseConfig);
-db = getFirestore(app);
-auth = getAuth(app);
+            <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">
+                Grace & Gains | Hush & Hope
+            </h1>
+            <p class="text-md text-gray-500 mt-2">
+                Your portal for success without burnout and intentional rest.
+            </p>
+        </div>
 
-// Authenticate the user
-if (initialAuthToken) {
-await signInWithCustomToken(auth, initialAuthToken);
-} else {
-await signInAnonymously(auth);
-}
-console.log("Firebase initialized and user authenticated.");
-} catch (error) {
-console.error("Error initializing Firebase:", error);
-}
-}
+        <!-- --- CALL TO ACTION BUTTONS --- -->
+        <div class="space-y-4 pt-6">
 
-// --- Core Order Submission Logic ---
-async function submitOrder(e) {
-e.preventDefault();
+            <!-- Button 1: Lead Magnet (Highest Priority) -->
+            <a href="https://example.com/signup-for-kit" target="_blank"
+               class="block w-full text-center py-4 px-6 rounded-xl shadow-lg
+                      bg-blue-600 text-white text-lg font-bold
+                      hover:bg-blue-700 transition duration-300 transform hover:scale-[1.02]">
+                🎁 FREE: The 3-Step Busyness Audit
+            </a>
+            <p class="text-xs text-center text-gray-500">
+                (The guide to identifying your "graceful gains" and cutting the drain.)
+            </p>
 
-if (!db || !auth || !auth.currentUser) {
-document.getElementById('message-box').innerHTML = '<p class="text-red-600">Error: Database connection not ready. Please try again.</p>';
-return;
-}
+            <!-- Divider -->
+            <hr class="border-gray-200 mt-6 mb-6">
+            
+            <h2 class="text-2xl font-bold text-center text-gray-900">Choose Your Path</h2>
 
-const form = e.target;
-const product = form.dataset.product;
-const userId = auth.currentUser.uid;
-const orderId = new Date().getTime().toString(); // Simple unique ID
-const timestamp = new Date().toISOString();
+            <!-- Button 2: Digital Course (Graceful Gains Blueprint) -->
+            <a href="#gains-order"
+               class="block w-full text-center py-4 px-6 rounded-xl shadow-md
+                      gg-green text-white text-lg font-bold
+                      hover:bg-green-600 transition duration-300 transform hover:scale-[1.02]">
+                Enroll in The Graceful Gains Blueprint
+            </a>
 
-// 1. Gather Customer Information
-const customerData = {
-name: form.elements.name.value,
-email: form.elements.email.value,
-phone: form.elements.phone ? form.elements.phone.value : 'N/A',
-};
+            <!-- Button 3: Physical Box (Hush & Hope) -->
+            <a href="#hope-order"
+               class="block w-full text-center py-4 px-6 rounded-xl shadow-md
+                      bg-gray-800 text-white text-lg font-bold
+                      hover:bg-gray-700 transition duration-300 transform hover:scale-[1.02]">
+                Order The Hope Reset Set Box
+            </a>
 
-// 2. Gather Order Details
-let orderDetails = {
-orderId: orderId,
-product: product,
-timestamp: timestamp,
-status: 'Pending',
-customer: customerData,
-userId: userId,
-discount: 'None', // Default discount
-};
-
-let finalPrice = 0.00;
-let successMessage = '';
-
-
-// 3. Handle specific product data (Physical vs. Digital)
-if (product === 'Hush and Hope Box') {
-finalPrice = 75.00;
-orderDetails.shippingAddress = form.elements.address.value;
-successMessage = `Your Hush and Hope box order has been placed! Total: $${finalPrice.toFixed(2)}. We will contact you regarding payment and shipping.`;
-
-} else if (product === 'Graceful Gains Blueprint') {
-const originalTotal = 497.00;
-finalPrice = originalTotal;
-const couponCode = form.elements.coupon.value.toUpperCase().trim();
-
-if (couponCode === 'FIRST50') {
-finalPrice = originalTotal * 0.50; // $248.50
-orderDetails.discount = 'FIRST50 (50% OFF)';
-successMessage = `Enrollment Confirmed with Discount! Total: $${finalPrice.toFixed(2)}. Your digital access link is on its way to your email.`;
-} else {
-successMessage = `Enrollment Confirmed! Total: $${finalPrice.toFixed(2)}. Your digital access link is on its way to your email.`;
-}
-orderDetails.delivery = 'Instant Digital Access via Email';
-}
-
-orderDetails.total = finalPrice;
+        </div>
+    </div>
+    
+    <!-- Global Message Box (used for successful order confirmation) -->
+    <div id="message-box" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full text-center">
+            <h3 id="message-title" class="text-2xl font-bold gg-green-text mb-3">Success!</h3>
+            <p id="message-text" class="text-gray-700 mb-4">Your order has been placed successfully.</p>
+            <button onclick="document.getElementById('message-box').classList.add('hidden')" class="bg-gray-200 text-gray-800 py-2 px-4 rounded-xl font-medium hover:bg-gray-300">Close</button>
+        </div>
+    </div>
 
 
-// Firestore Path for Self-Fulfillment Orders (Private to the user)
-const collectionPath = `/artifacts/${appId}/users/${userId}/orders`;
+    <!-- --- GRACE & GAINS ORDER FORM SECTION --- -->
+    <section id="gains-order" class="scroll-mt-32 w-full bg-gradient-to-br from-green-50 to-green-100 py-16 px-4">
+        <div class="w-full max-w-lg mx-auto bg-white p-6 sm:p-8 rounded-3xl shadow-2xl border-4 border-green-500">
+            <h2 class="text-3xl font-bold gg-green-text mb-4">Graceful Gains Enrollment</h2>
+            <p class="text-gray-600 mb-6">Complete the form to secure your spot in the 4-week Blueprint. Your order will be saved for manual payment processing.</p>
 
-try {
-// Add the new order document to the 'orders' collection
-await addDoc(collection(db, collectionPath), orderDetails);
+            <form id="gains-form" onsubmit="submitOrder(event)">
+                <!-- Hidden Product Field -->
+                <input type="hidden" name="product" value="Graceful Gains Blueprint">
+                <input type="hidden" name="price" value="497.00"> <!-- Standard Price -->
+                <input type="hidden" name="requiresShipping" value="false">
 
-// Show success message
-document.getElementById('message-box').innerHTML = `
-<div class="p-4 bg-green-100 text-green-800 rounded-lg shadow-md mt-4">
-<p class="font-bold">Order Confirmed! (ID: ${orderId})</p>
-<p>${successMessage}</p>
-</div>
-`;
-form.reset();
-} catch (e) {
-console.error("Error adding document: ", e);
-document.getElementById('message-box').innerHTML = '<p class="text-red-600">Sorry, there was an error processing your order. Please check the console.</p>';
-}
-}
+                <!-- Contact Information Fields -->
+                <div class="space-y-4">
+                    <input type="text" name="name" placeholder="Full Name" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                    <input type="email" name="email" placeholder="Email Address" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                    <input type="tel" name="phone" placeholder="Phone Number (Optional)" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                </div>
 
-// Attach the submit function globally for the forms
-window.submitOrder = submitOrder;
+                <!-- Coupon and Pricing -->
+                <div class="mt-6 p-4 border border-green-300 rounded-lg bg-green-50">
+                    <label for="gains-coupon" class="block text-sm font-medium text-gray-700 mb-2">Have a Coupon Code?</label>
+                    <input type="text" id="gains-coupon" name="coupon" placeholder="Enter FIRST50 for 50% Off" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 uppercase">
+                </div>
 
-// Initialize on load
-window.onload = initializeFirebase;
-</script>
+                <!-- Order Summary (Price will update via JS) -->
+                <div class="mt-6 pt-4 border-t border-gray-200">
+                    <div class="flex justify-between font-medium text-gray-700">
+                        <span>Original Price:</span>
+                        <span>$497.00</span>
+                    </div>
+                    <div class="flex justify-between font-medium text-red-500 mt-1" id="gains-discount-display">
+                        <span>Discount (50%):</span>
+                        <span>- $0.00</span>
+                    </div>
+                    <div class="flex justify-between font-extrabold text-2xl mt-3 gg-green-text">
+                        <span>Order Total:</span>
+                        <span id="gains-total-price">$497.00</span>
+                    </div>
+                </div>
 
-<!-- Header / Navigation Bar -->
-<header class="bg-white shadow-md sticky top-0 z-10">
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-<h1 class="text-3xl font-extrabold tracking-tight text-gray-900">
-<span class="text-green-600">Grace &</span> Gains
-</h1>
-<nav class="hidden md:flex space-x-8">
-<a href="#gains" class="text-lg font-medium text-gray-600 hover:text-green-600 transition duration-150">Services</a>
-<a href="#hope" class="text-lg font-medium text-gray-600 hover:text-green-600 transition duration-150">Shop Boxes</a>
-<a href="#" class="text-lg font-medium text-gray-600 hover:text-green-600 transition duration-150">My Story</a>
-</nav>
-<button class="md:hidden p-2 rounded-md text-gray-700 hover:bg-gray-100 transition duration-150">
-<!-- Hamburger Icon -->
-<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-</button>
-</div>
-</header>
+                <!-- Submit Button -->
+                <button type="submit" class="w-full mt-6 py-4 px-6 rounded-xl shadow-lg gg-green text-white text-lg font-bold hover:bg-green-600 transition duration-300">
+                    Enroll Now & Secure Spot (Order Total: $497.00)
+                </button>
+            </form>
+        </div>
+    </section>
+    
+    
+    <!-- --- HUSH & HOPE ORDER FORM SECTION --- -->
+    <section id="hope-order" class="scroll-mt-32 w-full bg-gray-800 py-16 px-4">
+        <div class="w-full max-w-lg mx-auto bg-white p-6 sm:p-8 rounded-3xl shadow-2xl border-4 border-gray-600">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Hush & Hope Box Order</h2>
+            <p class="text-gray-600 mb-6">Provide your shipping details for the limited-edition Hope Reset Set ($89.00). Orders are self-fulfilled and require payment upon invoicing.</p>
 
-<main class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+            <form id="hope-form" onsubmit="submitOrder(event)">
+                <!-- Hidden Product Field -->
+                <input type="hidden" name="product" value="Hush & Hope Reset Set">
+                <input type="hidden" name="price" value="89.00"> <!-- Standard Price -->
+                <input type="hidden" name="requiresShipping" value="true">
 
-<!-- Announcement/Hero Section -->
-<div class="text-center bg-gray-100 p-8 sm:p-12 rounded-2xl shadow-xl mb-12">
-<h2 class="text-4xl sm:text-5xl font-extrabold text-gray-900 leading-tight">
-Sustainable Success. <span class="text-green-600">Simplified.</span>
-</h2>
-<p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
-Stop choosing between ambition and well-being. Start building your life with both **Grace and Gains.**
-</p>
-</div>
+                <!-- Contact Information Fields -->
+                <div class="space-y-4">
+                    <input type="text" name="name" placeholder="Full Name" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-gray-500 focus:border-gray-500">
+                    <input type="email" name="email" placeholder="Email Address" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-gray-500 focus:border-gray-500">
+                    <textarea name="shippingAddress" placeholder="Full Shipping Address (Street, City, Zip)" rows="3" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-gray-500 focus:border-gray-500"></textarea>
+                </div>
+                
+                <!-- Order Summary -->
+                <div class="mt-6 pt-4 border-t border-gray-200">
+                    <div class="flex justify-between font-extrabold text-2xl mt-3 text-gray-800">
+                        <span>Order Total:</span>
+                        <span id="hope-total-price">$89.00</span>
+                    </div>
+                </div>
 
-<!-- Order Success/Error Message Box -->
-<div id="message-box" class="mb-8"></div>
+                <!-- Submit Button -->
+                <button type="submit" class="w-full mt-6 py-4 px-6 rounded-xl shadow-lg bg-gray-800 text-white text-lg font-bold hover:bg-gray-700 transition duration-300">
+                    Place Order & Send Shipping Invoice ($89.00)
+                </button>
+            </form>
+        </div>
+    </section>
 
-<!-- --- GRACE & GAINS: DIGITAL SERVICE SECTION --- -->
-<section id="gains" class="mb-16">
-<h3 class="text-3xl font-bold text-gray-900 mb-8 pb-3 border-b border-green-200">
-Grace & Gains: Your Path to Clarity
-</h3>
+    <!-- Firebase Script Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signInWithPopup, GithubAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, addDoc, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // --- Global Variables (Provided by Canvas Environment) ---
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        let db;
+        let auth;
+        let userId = null;
 
-<div class="bg-white p-6 sm:p-10 rounded-xl shadow-lg border border-green-100 md:flex md:items-start md:space-x-8">
-<!-- Product Information -->
-<div class="md:w-1/2">
-<h4 class="text-2xl font-bold text-green-700">The Graceful Gains Blueprint</h4>
-<p class="mt-2 text-gray-600">
-This is the signature 4-week digital course that shows you how to scale your success without scaling your burnout. Get instant access to video modules, workbooks, and templates.
-</p>
-<ul class="mt-4 space-y-2 text-gray-700 text-sm list-disc list-inside">
-<li>✅ 4 Core Modules for Effortless Momentum</li>
-<li>✅ Lifetime Access & Updates</li>
-<li>✅ The **Graceful Gains Blueprint** Workbook (PDF)</li>
-</ul>
-<p class="mt-6 text-xl font-extrabold text-gray-500 line-through">Original Price: $497.00</p>
-<p class="text-3xl font-extrabold text-gray-900">Current Price: $497.00</p>
-</div>
+        // Set log level for debugging Firebase operations
+        setLogLevel('debug');
 
-<!-- Digital Order Form -->
-<div class="md:w-1/2 mt-8 md:mt-0 p-6 bg-green-50 rounded-lg shadow-inner">
-<p class="font-semibold text-lg mb-4 text-green-800">Enroll Today (Instant Access)</p>
-<form data-product="Graceful Gains Blueprint" onsubmit="submitOrder(event)">
-<div class="space-y-4">
-<div>
-<label for="name-gains" class="block text-sm font-medium text-gray-700">Full Name</label>
-<input type="text" id="name-gains" name="name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 focus:ring-green-500 focus:border-green-500">
-</div>
-<div>
-<label for="email-gains" class="block text-sm font-medium text-gray-700">Email Address (for Access)</label>
-<input type="email" id="email-gains" name="email" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 focus:ring-green-500 focus:border-green-500">
-</div>
-<div>
-<label for="coupon-gains" class="block text-sm font-medium text-gray-700">Coupon Code (e.g., FIRST50)</label>
-<input type="text" id="coupon-gains" name="coupon" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 focus:ring-green-500 focus:border-green-500">
-</div>
-<button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-lg text-lg font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150">
-Enroll Now - Get Instant Access
-</button>
-</div>
-</form>
-</div>
-</div>
-</section>
+        // --- Initialization and Authentication ---
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
 
-<!-- --- HUSH & HOPE: PHYSICAL BOX SECTION --- -->
-<section id="hope" class="mb-16">
-<h3 class="text-3xl font-bold text-gray-900 mb-8 pb-3 border-b border-gray-300">
-Hush & Hope: The Reset Collection
-</h3>
+        // Utility to display confirmation/error messages
+        const displayMessage = (title, text, isSuccess = true) => {
+            const box = document.getElementById('message-box');
+            document.getElementById('message-title').textContent = title;
+            document.getElementById('message-text').textContent = text;
+            
+            const titleElement = document.getElementById('message-title');
+            if (isSuccess) {
+                titleElement.classList.add('gg-green-text');
+                titleElement.classList.remove('text-red-500');
+            } else {
+                titleElement.classList.remove('gg-green-text');
+                titleElement.classList.add('text-red-500');
+            }
+            
+            box.classList.remove('hidden');
+            box.classList.add('flex');
+        };
 
-<div class="bg-white p-6 sm:p-10 rounded-xl shadow-lg border border-gray-200 md:flex md:items-start md:space-x-8">
-<!-- Product Information -->
-<div class="md:w-1/2">
-<h4 class="text-2xl font-bold text-gray-700">The Hope Reset Set (Handmade Box)</h4>
-<p class="mt-2 text-gray-600">
-This curated box is hand-assembled by the founder and includes the high-quality physical products you need for intentional restoration. This turns self-care into a **sacred moment of hope.**
-</p>
-<ul class="mt-4 space-y-2 text-gray-700 text-sm list-disc list-inside">
-<li>✅ Silk Sleep Mask & Natural Lashes</li>
-<li>✅ 5x Soothing Clay Face Masks</li>
-<li>✅ Exclusive **3-Minute Guided Intention** Note Card</li>
-<li>✅ Hand-packed and shipped directly from the founder</li>
-</ul>
-<p class="mt-6 text-3xl font-extrabold text-gray-900">$75.00</p>
-</div>
+        // Function to update the UI with user status
+        const updateAuthStatus = (user) => {
+            const userStatus = document.getElementById('user-status');
+            const userIdDisplay = document.getElementById('user-id-display');
+            const githubBtn = document.getElementById('github-login-btn');
 
-<!-- Physical Order Form -->
-<div class="md:w-1/2 mt-8 md:mt-0 p-6 bg-gray-100 rounded-lg shadow-inner">
-<p class="font-semibold text-lg mb-4 text-gray-800">Order Your Box (Self-Fulfilled)</p>
-<form data-product="Hush and Hope Box" onsubmit="submitOrder(event)">
-<div class="space-y-4">
-<div>
-<label for="name-hope" class="block text-sm font-medium text-gray-700">Full Name</label>
-<input type="text" id="name-hope" name="name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 focus:ring-green-500 focus:border-green-500">
-</div>
-<div>
-<label for="email-hope" class="block text-sm font-medium text-gray-700">Email Address</label>
-<input type="email" id="email-hope" name="email" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 focus:ring-green-500 focus:border-green-500">
-</div>
-<div>
-<label for="phone-hope" class="block text-sm font-medium text-gray-700">Phone (Optional)</label>
-<input type="tel" id="phone-hope" name="phone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 focus:ring-green-500 focus:border-green-500">
-</div>
-<div>
-<label for="address-hope" class="block text-sm font-medium text-gray-700">Shipping Address</label>
-<textarea id="address-hope" name="address" rows="3" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 focus:ring-green-500 focus:border-green-500"></textarea>
-</div>
-<!-- Note: Coupon not added here since the physical product doesn't have an automated discount associated yet. -->
-<button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-lg text-lg font-medium text-white bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 transition duration-150">
-Place Order - Ship in 3-5 Days
-</button>
-</div>
-</form>
-</div>
-</div>
-</section>
+            if (user) {
+                userId = user.uid;
+                const provider = user.providerData?.[0]?.providerId || 'Canvas/Anonymous';
+                const displayName = user.displayName || user.email || 'Anonymous User';
+                
+                userStatus.innerHTML = `Signed In as: <span class="font-semibold">${displayName}</span>`;
+                userIdDisplay.textContent = `User ID: ${userId} (Provider: ${provider.replace('.com', '')})`;
+                githubBtn.style.display = 'none';
+            } else {
+                userStatus.textContent = 'Not signed in. Click below to sign in.';
+                userIdDisplay.textContent = '';
+                githubBtn.style.display = 'block';
+            }
+        };
 
-</main>
+        // Main Auth State Listener
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                updateAuthStatus(user);
+            } else {
+                try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (error) {
+                    console.error("Error during initial sign-in:", error);
+                    updateAuthStatus(null);
+                }
+            }
+        });
 
-<!-- Footer -->
-<footer class="bg-gray-900 text-white py-8 mt-12">
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm">
-&copy; 2025 Grace & Gains | Hush & Hope. All rights reserved.
-</div>
-</footer>
+        // --- GitHub Sign-In Function ---
+        window.signInWithGitHub = async () => {
+            const provider = new GithubAuthProvider();
+            try {
+                // Ensure a smooth flow, even if starting from anonymous
+                if (auth.currentUser && auth.currentUser.isAnonymous) {
+                    await signOut(auth);
+                }
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error("GitHub sign-in error:", error.code, error.message);
+                displayMessage('Login Failed', 'Please allow pop-ups and try again. Error: ' + error.message, false);
+            }
+        };
 
+        // --- Coupon Logic for Grace & Gains Form ---
+        const originalPrice = 497.00;
+        const couponInput = document.getElementById('gains-coupon');
+        const discountDisplay = document.getElementById('gains-discount-display');
+        const totalPriceSpan = document.getElementById('gains-total-price');
+        const submitButton = document.querySelector('#gains-form button[type="submit"]');
+
+        const updateGainsPrice = () => {
+            const coupon = couponInput.value.trim().toUpperCase();
+            let discountAmount = 0;
+            let finalPrice = originalPrice;
+            let couponUsed = null;
+
+            if (coupon === 'FIRST50') {
+                discountAmount = originalPrice * 0.50;
+                finalPrice = originalPrice - discountAmount;
+                couponUsed = 'FIRST50 (50% OFF)';
+            }
+            
+            // Update UI elements
+            discountDisplay.innerHTML = `<span>Discount (${couponUsed ? '50% Applied' : 'No Coupon'}):</span><span class="${couponUsed ? 'text-red-500' : 'text-gray-400'}">- $${discountAmount.toFixed(2)}</span>`;
+            totalPriceSpan.textContent = `$${finalPrice.toFixed(2)}`;
+            submitButton.textContent = `Enroll Now & Secure Spot (Order Total: $${finalPrice.toFixed(2)})`;
+
+            // Attach final price/coupon data to the form for submission
+            submitButton.setAttribute('data-final-price', finalPrice.toFixed(2));
+            submitButton.setAttribute('data-coupon-used', couponUsed || 'None');
+        };
+
+        if (couponInput) {
+            couponInput.addEventListener('input', updateGainsPrice);
+            updateGainsPrice(); // Initial calculation
+        }
+
+        // --- Order Submission Logic ---
+        window.submitOrder = async (e) => {
+            e.preventDefault();
+            
+            if (!userId) {
+                console.error("User ID not available. Authentication failed.");
+                displayMessage('Order Failed', 'Authentication error. Please refresh and try signing in with GitHub.', false);
+                return;
+            }
+
+            const form = e.target;
+            const formData = new FormData(form);
+            const product = formData.get('product');
+            const requiresShipping = formData.get('requiresShipping') === 'true';
+            
+            // Base order details
+            let orderDetails = {
+                product: product,
+                status: 'Pending',
+                timestamp: new Date().toISOString(),
+                customer: {
+                    name: formData.get('name'),
+                    email: formData.get('email'),
+                    phone: formData.get('phone') || null,
+                    userId: userId 
+                },
+                payment: {
+                    type: 'Manual Invoice',
+                    collected: false,
+                }
+            };
+
+            // Product-specific logic
+            if (product === 'Graceful Gains Blueprint') {
+                const finalPrice = form.querySelector('button[type="submit"]').getAttribute('data-final-price');
+                const couponUsed = form.querySelector('button[type="submit"]').getAttribute('data-coupon-used');
+                
+                orderDetails.price = parseFloat(finalPrice);
+                orderDetails.payment.coupon = couponUsed;
+            } else if (product === 'Hush & Hope Reset Set') {
+                orderDetails.price = parseFloat(formData.get('price'));
+                orderDetails.shippingAddress = formData.get('shippingAddress');
+            }
+
+            try {
+                const collectionPath = `/artifacts/${appId}/users/${userId}/orders`;
+                const docRef = await addDoc(collection(db, collectionPath), orderDetails);
+                
+                // Success feedback
+                const title = `Order Confirmed: ${product}`;
+                const text = `Thank you! Your order was successfully saved to our system. We will send an invoice to ${orderDetails.customer.email} shortly. Your Order ID: ${docRef.id}`;
+                displayMessage(title, text, true);
+
+                form.reset(); // Clear the form on success
+                if (product === 'Graceful Gains Blueprint') updateGainsPrice(); // Reset price display
+                
+            } catch (error) {
+                console.error("Error saving document: ", error);
+                displayMessage('Order Failed', 'An error occurred while saving your order. Please check the console for details.', false);
+            }
+        };
+    </script>
 </body>
 </html>
